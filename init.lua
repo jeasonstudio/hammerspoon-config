@@ -25,6 +25,64 @@ else
     end
 end
 
+-- hs.grid.toggleShow()
+-- hs.window.find("code-insiders")
+-- print(hs.window.find('code-insiders'):application():name())
+
+function print_r ( t )  
+  print("=======================")
+  local print_r_cache={}
+  local function sub_print_r(t,indent)
+      if (print_r_cache[tostring(t)]) then
+          print(indent.."*"..tostring(t))
+      else
+          print_r_cache[tostring(t)]=true
+          if (type(t)=="table") then
+              for pos,val in pairs(t) do
+                  if (type(val)=="table") then
+                      print(indent.."["..pos.."] => "..tostring(t).." {")
+                      sub_print_r(val,indent..string.rep(" ",string.len(pos)+8))
+                      print(indent..string.rep(" ",string.len(pos)+6).."}")
+                  elseif (type(val)=="string") then
+                      print(indent.."["..pos..'] => "'..val..'"')
+                  else
+                      print(indent.."["..pos.."] => "..tostring(val))
+                  end
+              end
+          else
+              print(indent..tostring(t))
+          end
+      end
+  end
+  if (type(t)=="table") then
+      print(tostring(t).." {")
+      sub_print_r(t,"  ")
+      print("}")
+  else
+      sub_print_r(t,"  ")
+  end
+  print()
+  print("=======================")
+end
+
+-- Visual Studio Code - Insiders
+-- hs.application.enableSpotlightForNameSearches(true)
+-- local code_instance_name = hs.application.infoForBundleID('com.apple.Safari')
+
+-- print(code_instance_name["CFBundleName"])
+-- if #running_code_instance > 0 then
+--   print(#running_code_instance)
+--   for i = 1, #running_code_instance do
+--     print(running_code_instance[i]:name())
+--   end
+-- end
+-- print(table_leng(wff))
+
+-- local wf=hs.window.filter
+-- alter the default windowfilter
+-- wf.default:setAppFilter('code-insiders',{allowTitles=1}) -- ignore no-title windows (e.g. transient autocomplete suggestions) in My IDE
+
+
 -- hsreload_keys = hsreload_keys or {{"cmd", "shift", "ctrl"}, "R"}
 -- if string.len(hsreload_keys[2]) > 0 then
 --     hs.hotkey.bind(hsreload_keys[1], hsreload_keys[2], "Reload Configuration", function() hs.reload() end)
@@ -46,6 +104,8 @@ if not hspoon_list then
         -- "SpeedMenu",
         -- "FnMate",
         "KSheet",
+        -- "LookupSelection",
+        -- "DeepLTranslate",
         -- "PopupTranslateSelection",
         "HCalendar",
         "WinWin",
@@ -64,6 +124,28 @@ end
 --   })
 -- end
 
+-- 词典翻译
+-- if spoon.LookupSelection then
+--   spoon.LookupSelection:bindHotkeys({
+--     lexicon = { { "ctrl", "alt", "cmd" }, "L" },
+--     neue_notiz = { { "ctrl", "alt", "cmd" }, "N" },
+--     hsdocs = { { "ctrl", "alt", "cmd" }, "H" },
+--  })
+-- end
+
+
+-- spoon.ModalMgr.supervisor:bind("alt", "e", "test", function()
+--   print(hs.window.focusedWindow():id())
+--   local code_app_list = hs.application.applicationsForBundleID('com.microsoft.VSCodeInsiders')
+--   if #code_app_list > 0 then
+--     print("Get Application done")
+--     code_apps = code_app_list[1]:allWindows()
+--     print("You have", #code_apps, "opened windows.")
+--   end
+-- end)
+
+
+
 ----------------------------------------------------------------------------------------------------
 -- Then we create/register all kinds of modal keybindings environments.
 ----------------------------------------------------------------------------------------------------
@@ -73,204 +155,6 @@ spoon.ModalMgr.supervisor:bind("alt", "tab", 'Show Window Hints', function()
   spoon.ModalMgr:deactivateAll()
   hs.hints.windowHints()
 end)
-
-----------------------------------------------------------------------------------------------------
--- appM modal environment
--- 快捷到达 APP
--- spoon.ModalMgr:new("appM")
--- local cmodal = spoon.ModalMgr.modal_list["appM"]
--- cmodal:bind('', 'escape', 'Deactivate appM', function() spoon.ModalMgr:deactivate({"appM"}) end)
--- cmodal:bind('', 'Q', 'Deactivate appM', function() spoon.ModalMgr:deactivate({"appM"}) end)
--- cmodal:bind('', 'tab', 'Toggle Cheatsheet', function() spoon.ModalMgr:toggleCheatsheet() end)
--- if not hsapp_list then
---     hsapp_list = {
---         {key = 'f', name = 'Finder'},
---         {key = 's', name = 'Safari'},
---         {key = 't', name = 'Terminal'},
---         {key = 'v', id = 'com.apple.ActivityMonitor'},
---         {key = 'y', id = 'com.apple.systempreferences'},
---     }
--- end
--- for _, v in ipairs(hsapp_list) do
---     if v.id then
---         local located_name = hs.application.nameForBundleID(v.id)
---         if located_name then
---             cmodal:bind('', v.key, located_name, function()
---                 hs.application.launchOrFocusByBundleID(v.id)
---                 spoon.ModalMgr:deactivate({"appM"})
---             end)
---         end
---     elseif v.name then
---         cmodal:bind('', v.key, v.name, function()
---             hs.application.launchOrFocus(v.name)
---             spoon.ModalMgr:deactivate({"appM"})
---         end)
---     end
--- end
--- -- Then we register some keybindings with modal supervisor
--- hsappM_keys = hsappM_keys or {"alt", "A"}
--- if string.len(hsappM_keys[2]) > 0 then
---     spoon.ModalMgr.supervisor:bind(hsappM_keys[1], hsappM_keys[2], "Enter AppM Environment", function()
---         spoon.ModalMgr:deactivateAll()
---         -- Show the keybindings cheatsheet once appM is activated
---         spoon.ModalMgr:activate({"appM"}, "#FFBD2E", true)
---     end)
--- end
-
-----------------------------------------------------------------------------------------------------
--- clipshowM modal environment
--- if spoon.ClipShow then
---     spoon.ModalMgr:new("clipshowM")
---     local cmodal = spoon.ModalMgr.modal_list["clipshowM"]
---     cmodal:bind('', 'escape', 'Deactivate clipshowM', function()
---         spoon.ClipShow:toggleShow()
---         spoon.ModalMgr:deactivate({"clipshowM"})
---     end)
---     cmodal:bind('', 'Q', 'Deactivate clipshowM', function()
---         spoon.ClipShow:toggleShow()
---         spoon.ModalMgr:deactivate({"clipshowM"})
---     end)
---     cmodal:bind('', 'N', 'Save this Session', function()
---         spoon.ClipShow:saveToSession()
---     end)
---     cmodal:bind('', 'R', 'Restore last Session', function()
---         spoon.ClipShow:restoreLastSession()
---     end)
---     cmodal:bind('', 'B', 'Open in Browser', function()
---         spoon.ClipShow:openInBrowserWithRef()
---         spoon.ClipShow:toggleShow()
---         spoon.ModalMgr:deactivate({"clipshowM"})
---     end)
---     cmodal:bind('', 'S', 'Search with Bing', function()
---         spoon.ClipShow:openInBrowserWithRef("https://www.bing.com/search?q=")
---         spoon.ClipShow:toggleShow()
---         spoon.ModalMgr:deactivate({"clipshowM"})
---     end)
---     cmodal:bind('', 'M', 'Open in MacVim', function()
---         spoon.ClipShow:openWithCommand("/usr/local/bin/mvim")
---         spoon.ClipShow:toggleShow()
---         spoon.ModalMgr:deactivate({"clipshowM"})
---     end)
---     cmodal:bind('', 'F', 'Save to Desktop', function()
---         spoon.ClipShow:saveToFile()
---         spoon.ClipShow:toggleShow()
---         spoon.ModalMgr:deactivate({"clipshowM"})
---     end)
---     cmodal:bind('', 'H', 'Search in Github', function()
---         spoon.ClipShow:openInBrowserWithRef("https://github.com/search?q=")
---         spoon.ClipShow:toggleShow()
---         spoon.ModalMgr:deactivate({"clipshowM"})
---     end)
---     cmodal:bind('', 'G', 'Search with Google', function()
---         spoon.ClipShow:openInBrowserWithRef("https://www.google.com/search?q=")
---         spoon.ClipShow:toggleShow()
---         spoon.ModalMgr:deactivate({"clipshowM"})
---     end)
---     cmodal:bind('', 'L', 'Open in Sublime Text', function()
---         spoon.ClipShow:openWithCommand("/usr/local/bin/subl")
---         spoon.ClipShow:toggleShow()
---         spoon.ModalMgr:deactivate({"clipshowM"})
---     end)
-
---     -- Register clipshowM with modal supervisor
---     hsclipsM_keys = hsclipsM_keys or {"alt", "C"}
---     if string.len(hsclipsM_keys[2]) > 0 then
---         spoon.ModalMgr.supervisor:bind(hsclipsM_keys[1], hsclipsM_keys[2], "Enter clipshowM Environment", function()
---             -- We need to take action upon hsclipsM_keys is pressed, since pressing another key to showing ClipShow panel is redundant.
---             spoon.ClipShow:toggleShow()
---             -- Need a little trick here. Since the content type of system clipboard may be "URL", in which case we don't need to activate clipshowM.
---             if spoon.ClipShow.canvas:isShowing() then
---                 spoon.ModalMgr:deactivateAll()
---                 spoon.ModalMgr:activate({"clipshowM"})
---             end
---         end)
---     end
--- end
-
-----------------------------------------------------------------------------------------------------
--- Register HSaria2
--- if spoon.HSaria2 then
---     -- First we need to connect to aria2 rpc host
---     hsaria2_host = hsaria2_host or "http://localhost:6800/jsonrpc"
---     hsaria2_secret = hsaria2_secret or "token"
---     spoon.HSaria2:connectToHost(hsaria2_host, hsaria2_secret)
-
---     hsaria2_keys = hsaria2_keys or {"alt", "D"}
---     if string.len(hsaria2_keys[2]) > 0 then
---         spoon.ModalMgr.supervisor:bind(hsaria2_keys[1], hsaria2_keys[2], 'Toggle aria2 Panel', function() spoon.HSaria2:togglePanel() end)
---     end
--- end
-
-----------------------------------------------------------------------------------------------------
--- Register Hammerspoon Search
--- if spoon.HSearch then
---     hsearch_keys = hsearch_keys or {"alt", "G"}
---     if string.len(hsearch_keys[2]) > 0 then
---         spoon.ModalMgr.supervisor:bind(hsearch_keys[1], hsearch_keys[2], 'Launch Hammerspoon Search', function() spoon.HSearch:toggleShow() end)
---     end
--- end
-
-----------------------------------------------------------------------------------------------------
--- Register Hammerspoon API manual: Open Hammerspoon manual in default browser
--- hsman_keys = hsman_keys or {"alt", "H"}
--- if string.len(hsman_keys[2]) > 0 then
---     spoon.ModalMgr.supervisor:bind(hsman_keys[1], hsman_keys[2], "Read Hammerspoon Manual", function()
---         hs.doc.hsdocs.forceExternalBrowser(true)
---         hs.doc.hsdocs.moduleEntitiesInSidebar(true)
---         hs.doc.hsdocs.help()
---     end)
--- end
-
-----------------------------------------------------------------------------------------------------
--- countdownM modal environment
--- if spoon.CountDown then
---     spoon.ModalMgr:new("countdownM")
---     local cmodal = spoon.ModalMgr.modal_list["countdownM"]
---     cmodal:bind('', 'escape', 'Deactivate countdownM', function() spoon.ModalMgr:deactivate({"countdownM"}) end)
---     cmodal:bind('', 'Q', 'Deactivate countdownM', function() spoon.ModalMgr:deactivate({"countdownM"}) end)
---     cmodal:bind('', 'tab', 'Toggle Cheatsheet', function() spoon.ModalMgr:toggleCheatsheet() end)
---     cmodal:bind('', '-', '1 Minutes Countdown', function()
---         spoon.CountDown:startFor(1)
---         spoon.ModalMgr:deactivate({"countdownM"})
---     end)
---     cmodal:bind('', '0', '5 Minutes Countdown', function()
---         spoon.CountDown:startFor(5)
---         spoon.ModalMgr:deactivate({"countdownM"})
---     end)
---     for i = 1, 9 do
---         cmodal:bind('', tostring(i), string.format("%s Minutes Countdown", 10 * i), function()
---             spoon.CountDown:startFor(10 * i)
---             spoon.ModalMgr:deactivate({"countdownM"})
---         end)
---     end
---     cmodal:bind('', 'return', '25 Minutes Countdown', function()
---         spoon.CountDown:startFor(25)
---         spoon.ModalMgr:deactivate({"countdownM"})
---     end)
---     cmodal:bind('', 'space', 'Pause/Resume CountDown', function()
---         spoon.CountDown:pauseOrResume()
---         spoon.ModalMgr:deactivate({"countdownM"})
---     end)
-
---     -- Register countdownM with modal supervisor
---     hscountdM_keys = hscountdM_keys or {"alt", "I"}
---     if string.len(hscountdM_keys[2]) > 0 then
---         spoon.ModalMgr.supervisor:bind(hscountdM_keys[1], hscountdM_keys[2], "Enter countdownM Environment", function()
---             spoon.ModalMgr:deactivateAll()
---             -- Show the keybindings cheatsheet once countdownM is activated
---             spoon.ModalMgr:activate({"countdownM"}, "#FF6347", true)
---         end)
---     end
--- end
-
-----------------------------------------------------------------------------------------------------
--- Register lock screen
--- hslock_keys = hslock_keys or {"alt", "L"}
--- if string.len(hslock_keys[2]) > 0 then
---     spoon.ModalMgr.supervisor:bind(hslock_keys[1], hslock_keys[2], "Lock Screen", function()
---         hs.caffeinate.lockScreen()
---     end)
--- end
 
 ----------------------------------------------------------------------------------------------------
 -- resizeM modal environment
@@ -308,7 +192,6 @@ if spoon.WinWin then
     -- cmodal:bind('', 'up', 'Move to Above Monitor', function() spoon.WinWin:stash() spoon.WinWin:moveToScreen("up") end)
     -- cmodal:bind('', 'down', 'Move to Below Monitor', function() spoon.WinWin:stash() spoon.WinWin:moveToScreen("down") end)
     -- cmodal:bind('', '`', 'Center Cursor', function() spoon.WinWin:centerCursor() end)
-
     -- Register resizeM with modal supervisor
     hsresizeM_keys = hsresizeM_keys or {"alt", "R"}
     if string.len(hsresizeM_keys[2]) > 0 then
@@ -344,39 +227,6 @@ if spoon.KSheet then
     spoon.ModalMgr:activate({"cheatsheetM"})
   end)
 end
-
-----------------------------------------------------------------------------------------------------
--- Register AClock
--- if spoon.AClock then
---     hsaclock_keys = hsaclock_keys or {"alt", "T"}
---     if string.len(hsaclock_keys[2]) > 0 then
---         spoon.ModalMgr.supervisor:bind(hsaclock_keys[1], hsaclock_keys[2], "Toggle Floating Clock", function() spoon.AClock:toggleShow() end)
---     end
--- end
-
-----------------------------------------------------------------------------------------------------
--- Register browser tab typist: Type URL of current tab of running browser in markdown format. i.e. [title](link)
--- hstype_keys = hstype_keys or {"alt", "V"}
--- if string.len(hstype_keys[2]) > 0 then
---     spoon.ModalMgr.supervisor:bind(hstype_keys[1], hstype_keys[2], "Type Browser Link", function()
---         local safari_running = hs.application.applicationsForBundleID("com.apple.Safari")
---         local chrome_running = hs.application.applicationsForBundleID("com.google.Chrome")
---         if #safari_running > 0 then
---             local stat, data = hs.applescript('tell application "Safari" to get {URL, name} of current tab of window 1')
---             if stat then hs.eventtap.keyStrokes("[" .. data[2] .. "](" .. data[1] .. ")") end
---         elseif #chrome_running > 0 then
---             local stat, data = hs.applescript('tell application "Google Chrome" to get {URL, title} of active tab of window 1')
---             if stat then hs.eventtap.keyStrokes("[" .. data[2] .. "](" .. data[1] .. ")") end
---         end
---     end)
--- end
-
-----------------------------------------------------------------------------------------------------
--- Register Hammerspoon console
--- hsconsole_keys = hsconsole_keys or {"alt", "Z"}
--- if string.len(hsconsole_keys[2]) > 0 then
---     spoon.ModalMgr.supervisor:bind(hsconsole_keys[1], hsconsole_keys[2], "Toggle Hammerspoon Console", function() hs.toggleConsole() end)
--- end
 
 ----------------------------------------------------------------------------------------------------
 -- Finally we initialize ModalMgr supervisor
