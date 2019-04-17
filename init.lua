@@ -25,10 +25,6 @@ else
     end
 end
 
--- hs.grid.toggleShow()
--- hs.window.find("code-insiders")
--- print(hs.window.find('code-insiders'):application():name())
-
 function print_r ( t )  
   print("=======================")
   local print_r_cache={}
@@ -65,29 +61,6 @@ function print_r ( t )
   print("=======================")
 end
 
--- Visual Studio Code - Insiders
--- hs.application.enableSpotlightForNameSearches(true)
--- local code_instance_name = hs.application.infoForBundleID('com.apple.Safari')
-
--- print(code_instance_name["CFBundleName"])
--- if #running_code_instance > 0 then
---   print(#running_code_instance)
---   for i = 1, #running_code_instance do
---     print(running_code_instance[i]:name())
---   end
--- end
--- print(table_leng(wff))
-
--- local wf=hs.window.filter
--- alter the default windowfilter
--- wf.default:setAppFilter('code-insiders',{allowTitles=1}) -- ignore no-title windows (e.g. transient autocomplete suggestions) in My IDE
-
-
--- hsreload_keys = hsreload_keys or {{"cmd", "shift", "ctrl"}, "R"}
--- if string.len(hsreload_keys[2]) > 0 then
---     hs.hotkey.bind(hsreload_keys[1], hsreload_keys[2], "Reload Configuration", function() hs.reload() end)
--- end
-
 -- ModalMgr Spoon must be loaded explicitly, because this repository heavily relies upon it.
 hs.loadSpoon("ModalMgr")
 
@@ -117,34 +90,76 @@ for _, v in pairs(hspoon_list) do
     hs.loadSpoon(v)
 end
 
--- TODO: translate
--- if spoon.PopupTranslateSelection then
---   spoon.PopupTranslateSelection:bindHotkeys({
---     translate_to_en = { { "ctrl", "alt", "cmd" }, "e" },
---   })
--- end
+function alertIM(txt)
+    hs.alert.closeAll()
+    local alertStyle = hs.alert.defaultStyle
+    alertStyle.radius = 10
+    hs.alert.defaultStyle.strokeColor.alpha = 0.25
+    hs.alert.defaultStyle.fillColor.alpha = 0.5
+    hs.alert.defaultStyle.strokeWidth = 1
+    alertStyle.fadeInDuration = 0.6
+    alertStyle.fadeOutDuration = 0.6
+    hs.alert.show(txt, alertStyle, hs.screen.mainScreen(), 1)
+end
+local function Chinese()
+    hs.keycodes.setMethod('Squirrel')
+    alertIM(" 中")
+    print("Switch to Chinese")
+end
+local function English()
+    hs.keycodes.setLayout('ABC')
+    alertIM(" En")
+    print("Switch to English")
+end
+local function toggleInputMethod()
+    if hs.keycodes.currentMethod() == nil then
+        Chinese()
+    else
+        English()
+    end
+end
 
--- 词典翻译
--- if spoon.LookupSelection then
---   spoon.LookupSelection:bindHotkeys({
---     lexicon = { { "ctrl", "alt", "cmd" }, "L" },
---     neue_notiz = { { "ctrl", "alt", "cmd" }, "N" },
---     hsdocs = { { "ctrl", "alt", "cmd" }, "H" },
---  })
--- end
+-- 使用 shift 自动切换系统输入法
+-- 200000000ns === 200ms === 0.2s
+timesplit = 200000000
+shiftPressedTimestamp = hs.timer.absoluteTime()
+hs.eventtap.new({hs.eventtap.event.types.flagsChanged}, function(e)
+    local keyCode = e:getKeyCode()
+    -- 如果同时按了其他键作为组合键，则不切换输入法
+    if keyCode ~= 56 then
+        shiftPressedTimestamp = shiftPressedTimestamp - timesplit
+        return
+    end
+    local nowTime = hs.timer.absoluteTime()
+    -- 在 200ms 内默认为切换行为
+    if keyCode == 56 and (nowTime - shiftPressedTimestamp <= timesplit) then
+        toggleInputMethod()
+    else
+        shiftPressedTimestamp = nowTime
+    end
+end):start()
 
 
--- spoon.ModalMgr.supervisor:bind("alt", "e", "test", function()
---   print(hs.window.focusedWindow():id())
---   local code_app_list = hs.application.applicationsForBundleID('com.microsoft.VSCodeInsiders')
---   if #code_app_list > 0 then
---     print("Get Application done")
---     code_apps = code_app_list[1]:allWindows()
---     print("You have", #code_apps, "opened windows.")
---   end
--- end)
+appInputMethod = {
+    Hammerspoon             = English,
+    iTerm2                  = English,
+    Safari                  = English,
+    ['Google Chrome']       = English,
+    ['Code - Insiders']     = English,
+    ['钉钉']                = Chinese,
+    ['阿里邮箱']             = Chinese,
+    Typora                  = Chinese,
+    WeChat                  = Chinese
+}
 
-
+hs.application.watcher.new(function(appName, eventType, appObject)
+    if (eventType == hs.application.watcher.activated) then
+        for app, fn in pairs(appInputMethod) do
+            if app == appName then fn() end
+        end
+        print("    =>", appName)
+    end
+end):start()
 
 ----------------------------------------------------------------------------------------------------
 -- Then we create/register all kinds of modal keybindings environments.
